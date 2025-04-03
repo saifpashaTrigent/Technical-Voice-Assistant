@@ -1,15 +1,20 @@
 import streamlit as st
 from audio_recorder_streamlit import audio_recorder
-from Technical_Voice_Assistant.functions import transcribe_text_to_voice, chat_completion_call, text_to_speech_ai
+from Technical_Voice_Assistant.functions import (
+    transcribe_text_to_voice,
+    chat_completion_call,
+    text_to_speech_ai,
+)
 from PIL import Image
 
 api_key = st.secrets["OPENAI_API_KEY"]
 
 
-
 if api_key is None:
     raise ValueError(
-        "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+        "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable."
+    )
+
 
 def main():
 
@@ -18,7 +23,7 @@ def main():
         page_title="GenAI Demo | Trigent AXLR8 Labs",
         page_icon=favicon,
         layout="wide",
-        initial_sidebar_state="expanded"
+        initial_sidebar_state="expanded",
     )
 
     # Sidebar Logo
@@ -34,7 +39,6 @@ def main():
     """
     st.sidebar.markdown(logo_html, unsafe_allow_html=True)
 
-    
     if "chat_history" not in st.session_state:
         st.session_state["chat_history"] = []
 
@@ -43,25 +47,24 @@ def main():
 
     st.title("Technical voice assistant 💬")
 
-    
     if api_key:
         success_message_html = """
         <span style='color:green; font-weight:bold;'>✅ Powering the Chatbot using Open AI's 
-        <a href='https://platform.openai.com/docs/models/gpt-3-5' target='_blank'>gpt-3.5-turbo-0613 model</a>!</span>
+        <a href='https://platform.openai.com/docs/models/gpt-3-5' target='_blank'>gpt-4o model</a>!</span>
         """
 
         # Display the success message with the link
         st.markdown(success_message_html, unsafe_allow_html=True)
         openai_api_key = api_key
     else:
-        openai_api_key = st.text_input(
-            'Enter your OPENAI_API_KEY: ', type='password')
+        openai_api_key = st.text_input("Enter your OPENAI_API_KEY: ", type="password")
         if not openai_api_key:
-            st.warning('Please, enter your OPENAI_API_KEY', icon='⚠️')
+            st.warning("Please, enter your OPENAI_API_KEY", icon="⚠️")
         else:
-            st.success('Ask Tech voice assistant about your software.', icon='👉')
+            st.success("Ask Tech voice assistant about your software.", icon="👉")
 
-    st.markdown("""
+    st.markdown(
+        """
             ## **Bringing you to Ai Tech Support**
             
         **The Technical Assistant all you need 
@@ -69,35 +72,38 @@ def main():
         Please feel free to ask any questions you have.**
 
 ------------------------------------------------------------------------------------------
-    """)
+    """
+    )
 
-
-
-    audio_bytes = audio_recorder(text="Record your issue here and please wait",
-                                 recording_color="#e8b62c", neutral_color="#6aa36f", icon_size="2x")
+    audio_bytes = audio_recorder(
+        text="Record your issue here and please wait",
+        recording_color="#e8b62c",
+        neutral_color="#6aa36f",
+        icon_size="2x",
+    )
     if audio_bytes:
         with st.spinner("Thinking.."):
-            audio_location="audios/audio_file.wav"  #This is saif voice 
+            audio_location = "audios/audio_file.wav"  # This is saif voice
             with open(audio_location, "wb") as f:
                 f.write(audio_bytes)
 
             text = transcribe_text_to_voice(audio_location)
-            st.session_state['chat_history'].append({'role': 'user', 'content': text})
+            st.session_state["chat_history"].append({"role": "user", "content": text})
 
             api_response = chat_completion_call(text)
-            st.session_state['chat_history'].append({'role': 'assistant', 'content': api_response})
+            st.session_state["chat_history"].append(
+                {"role": "assistant", "content": api_response}
+            )
 
-            reversed_chat_history = st.session_state['chat_history'][::-1]
+            reversed_chat_history = st.session_state["chat_history"][::-1]
             for message in reversed_chat_history:
                 with st.empty() and st.chat_message(message["role"]):
-                    st.markdown(message['content'])
+                    st.markdown(message["content"])
 
                     if message["role"] == "assistant":
-                        audio_data = text_to_speech_ai(message['content'])
-                        st.audio(audio_data, format='audio/mp3')
+                        audio_data = text_to_speech_ai(message["content"])
+                        st.audio(audio_data, format="audio/mp3")
 
-
-    
     # Footer
     footer_html = """
     <div style="text-align: right; margin-right: 10%;">
@@ -136,5 +142,6 @@ def main():
     # Rendering the footer
     st.markdown(footer, unsafe_allow_html=True)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
